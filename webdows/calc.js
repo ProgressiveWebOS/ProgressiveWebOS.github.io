@@ -1,9 +1,9 @@
 /*!
-Project: Webdows
+Project: FloydCraft WebOS
 Liscense: MIT
-Author: krisdb2009
-Date: 03/14/16
-File: webdows/calc.js
+Author: rmellis | tallulah95
+Origional Script: krisdb2009
+Date: 10/26/20
 */
 new explorer.window()
 .resize(220, 275)
@@ -64,6 +64,9 @@ new explorer.window()
 					.html(e);
 				}
 				peek.text(ans);
+				if(ans == 'Infinity') {
+					peek.html('<span style="display:inline-block;font-size:12px;margin-right:5px;margin-top:12px;">Cannot divide by zero</span>');
+				}
 				break;
 			case 'c':
 				peek.text('0');

@@ -1,56 +1,27 @@
-<img src="https://raw.githubusercontent.com/krisdb2009/webdows-docs/master/images/banner.png">
-<hr>
-<p align="center">
-<a href="https://belowaverage.org/webdows/"><img src="https://raw.githubusercontent.com/krisdb2009/webdows-docs/master/images/dev.png"></a>
-<a href="https://github.com/belowaverage-org/webdows/wiki"><img src="https://raw.githubusercontent.com/krisdb2009/webdows-docs/master/images/docs.png"></a>
-<a href="http://belowaverage-org.github.io/webdows/"><img src="https://raw.githubusercontent.com/krisdb2009/webdows-docs/master/images/demo.png"></a>
-<a href="https://belowaverage.org/"><img src="https://raw.githubusercontent.com/krisdb2009/webdows-docs/master/images/website.png"></a>
-</p>
-<hr>
-<h2 align="center">Webdows is a dynamic window API for the web browser designed to look and feel like Microsoft Windows</h2>
-<hr>
-<h1>Features</h1>
-
-* Simple API
-
-* Built in preloader
-
-* Well documented (Comming soon)
-
-* Supported by Chrome, Safari, Firefox, Edge, and IE 10+
-
-* Utilizes jQuery
-
-* 99% CSS vector design. *Bitmaps rarely used for styling*
-
-* Customizable themes
-
-<h1>Simple API</h1>
-<h3>Making a window</h3>
-
-```javascript
-new explorer.window()
-.title('Hello World')
-.resize(200, 200)
-.callback(function() {
-    this.body.html('Test 123');
-});
-```
-
-<img src="https://raw.githubusercontent.com/krisdb2009/webdows-docs/master/images/simpleapi1.PNG">
-
-<h3>Creating a context menu</h3>
-  
-```javascript
-new explorer.context()
-.append([
-    {
-       title: 'Hello'
-    }, {}, 
-    {
-       title: 'World',
-       callback: function() { console.log('World Clicked'); }
-    }
-]);
-```
-<img src="https://raw.githubusercontent.com/krisdb2009/webdows-docs/master/images/context.png">
+<p class="style26">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://webos.floydcraft.co.uk" target="_blank" class="style27">Click Here to visit FloydCraft's WebOS in your Browser. </a></p>
+<table width="802" border="0">
+  <tr>
+    <td width="439"><span class="style24"><span class="style25">FloydCraft WebOS</span> is an InBrowser Windows Like WebApp Management system forked from Webdows <br>
+        It serves as a place our players can access specific  minecraft and server related stuff without accessing untrusted sites themselves, The main reason  for this project is to give our players a shared office suite, shared coding environment  and access to various  WebApps
+that are often hard to find and work as well as there installable software rivals, for example Photoshop is a well known and very expensive  piece of software, in WebOS we have linked a trusted clone of photoshop named PhotoPea that offers the same features   photoshop does and a lot more.</span></td>
+    <td width="345"><a href="http://docs.webos.floydcraft.co.uk/" target="_blank"><img src="https://i.imgur.com/VdaJ09V.png" border="0"/></a></td>
+  </tr>
+  <tr>
+    <td height="56" colspan="2"><p class="style24">  There are many different pieces of software we've linked in that has been a useful  resource for our players.This project should make a great  template for anyone wishing to work on a windows like interface in the browser and manage webapps.</p>    </td>
+  </tr>
+</table>
+<p><a href="https://cdn.floydcraft.co.uk/floydcraft-webos/" target="_blank"><span class="style2"><img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p1.gif" border="0"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/compressed%20replacements/p2.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/compressed%20replacements/p3c.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/compressed%20replacements/p4.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p5.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/compressed%20replacements/p6.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p7.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p8.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p9.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p10.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p11.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/p12.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/compressed%20replacements/13.gif"/><br>
+  <img src="https://cdn.floydcraft.co.uk/WebOSGifBlocks/compressed%20replacements/14.gif"/><br>
+</span></a></p>

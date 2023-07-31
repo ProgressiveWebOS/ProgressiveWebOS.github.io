@@ -1,75 +1,44 @@
 $('head').find('title').text('Webdows');
-explorer.start.append([
+explorer.start.append([], [
 	{
-		title: 'webver.js',
-		icon: 'webdows/resources/icons/info.ico',
-		callback: function() { system.loader('webdows/webver.js'); }
+		title: 'User',
+		icon: 'programs/FileManager/fman.png',
+		callback: function() { system.loader('programs/FileManager/fman.js'); }
 	}, {
-		title: 'Personalize',
-		icon: 'webdows/resources/icons/pers.ico',
-		callback: function() { system.loader('webdows/personalize.js'); }
-	}, {
-		title: 'CMD',
-		icon: 'webdows/resources/icons/scre.ico',
-		callback: function() { system.loader('webdows/cmd.js'); }
-	}, {
-		title: 'Calculator',
-		icon: 'webdows/resources/icons/calc.ico',
-		callback: function() { system.loader('webdows/calc.js'); }
-	}, {
-		title: 'Notepad',
-		icon: 'webdows/resources/icons/note.ico',
-		callback: function() { system.loader('webdows/notepad.js'); }
-	}, {
-		title: 'System',
-		icon: 'webdows/resources/icons/scre.ico',
-		callback: function() { system.loader('webdows/system.js'); }
-	}, {
-		title: 'Youtube Extractor',
-		icon: 'programs/Youtube Extractor/logo.png',
-		callback: function() { system.loader('programs/Youtube Extractor/index.js'); }
-	}, {
-		title: 'Run',
-		icon: 'webdows/resources/icons/runi.ico',
-		callback: function() { system.loader('webdows/run.js'); }
-	}, {
-		title: 'Web Explorer',
-		icon: 'programs/Web Explorer/1.png',
-		callback: function() { system.loader('programs/Web Explorer/we.js'); }
-	}, {
-		title: 'Task Manager',
-		callback: function() { system.loader('webdows/taskmgr.js'); }
-	}
-], [
-	{
-		title: 'Webdows',
-		icon: 'webdows/resources/icons/ques.ico',
-		callback: function() { system.loader('webdows/webver.js'); }
-	}, {
-		title: 'Settings',
-		icon: 'webdows/resources/icons/cont.ico'
-	}, {
-		title: 'This Browser',
-		icon: 'webdows/resources/icons/scre.ico',
-		callback: function() { explorer.file_explorer(); },
-		context: [
-			{
-				title: '<b>Open</b>',
-				icon: 'webdows/resources/icons/driv.ico',
-				callback: function() { explorer.file_explorer(); }
-			}, {}, {
-				title: 'Properties',
-				callback: function() { system.loader('webdows/system.js'); }
-			}
-		]
-	}, {
-		title: 'Personalize',
-		icon: 'webdows/resources/icons/pers.ico',
-		callback: function() { system.loader('webdows/personalize.js'); }
+		title: 'Documents',
+		icon: 'programs/FileManager/fman.png',
+		callback: function() { system.loader('programs/FileManager/fman.js'); }
 	}, {
 		title: 'Welcome',
 		icon: 'webdows/resources/icons/logo.png',
 		callback: function() { system.loader('webdows/welcome.js'); }
+	}, {
+		title: 'About',
+		icon: 'webdows/resources/icons/ques.ico',
+		callback: function() { system.loader('webdows/webver.js'); }
+	}, {
+		title: 'File Manager',
+		icon: 'programs/FileManager/fman.png',
+		callback: function() { system.loader('programs/FileManager/fman.js'); }
+	}, {
+		title: 'Settings',
+		icon: 'webdows/resources/icons/cont.ico'
+	}, {
+		title: 'Personalize',
+		icon: 'webdows/resources/icons/pers.ico',
+		callback: function() { system.loader('webdows/personalize.js'); }
+	}, {
+		title: 'Speech',
+		icon: 'programs/Speech/TTS.ico',
+		callback: function() { system.loader('programs/Speech/TTS.js'); }
+	}, {
+		title: 'Help and Support',
+		icon: 'webdows/resources/icons/ques.ico',
+		callback: function() { system.loader('programs/Help/help.js'); }
+	}, {
+		title: 'Run',
+		icon: 'webdows/resources/icons/runi.ico',
+		callback: function() { system.loader('webdows/run.js'); }
 	}, {
 		title: 'Restart',
 		callback: function() { location.reload(true); }
@@ -95,21 +64,17 @@ $('#desktop.explorer').on('contextmenu', function(e) {
 						callback: function() {}
 					}, {}, {
 						title: 'Folder',
-						context: [
-							{
-								title: 'Test',
-								callback: function() {}
-							}, {
-								title: 'LOL',
-								callback: function() {}
-							}
-						]
+						callback: function() {}
 					}
 				]
 			}, {}, {
-				title: 'webver.js',
-				icon: 'webdows/resources/icons/info.ico',
-				callback: function() { system.loader('webdows/webver.js'); }
+				title: 'Desktop App Launcher',
+				icon: 'programs/Fence/icon.png',
+				callback: function() { system.loader('programs/Fence/Main.js'); }
+			}, {
+				title: 'Display Settings',
+				icon: 'programs/display/info.png',
+				callback: function() { system.loader('programs/display/info.js'); }
 			}, {
 				title: 'Personalize',
 				icon: 'webdows/resources/icons/pers.ico',

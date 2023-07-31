@@ -1,44 +1,99 @@
 /*!
-Project: Webdows
+Project: FloydCraft WebOS
 Liscense: MIT
-Author: krisdb2009
-Date: 05/01/16
-File: webdows/webver.js
+Author: rmellis | tallulah95
+Origional Script: krisdb2009
+Date: 12/11/20
 */
 new explorer.window()
 .resize(450, 400)
 .center()
 .controls([])
-.title('About Webdows')
+.title('About FloydCraft WebOS')
 .icon('webdows/resources/icons/info.ico')
 .callback(function() {
+	var win = this;
 	this.body
 	.css({'font-size':'10px'})
-	.html('<center><span style="font-size:33px;"><img style="margin-right:5px;vertical-align:-20px;width:64px;height:64px;" src="webdows/resources/explorer/webdows/so3.png">Webdows 6</span></center><hr><div>Below Average Webdows | Version 6.0 (Build 0001)<br> The MIT License (MIT) Copyright (c) 2016 krisdb2009 <br> Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.<br><span style="float:right;">Webdows is NOT affiliated with Microsoft</span></div><button class="credits">Credits</button><button class="ok">Ok</button>');
+	.html(`
+		<center>
+			<span style="font-size:33px;">
+				<img style="margin-right:5px;vertical-align:-20px;width:64px;height:64px;" src="webdows/resources/explorer/webdows/FCWebOS.png">
+				FloydCraft WebOS
+			</span>
+		</center>
+		<div>
+			FloydCraft WebOS | Version <span id="version">...</span><span style="float:right;" id="showing">...</span>
+			<pre>Loading license, Please wait...</pre>
+			<span style="float:right;">FloydCraft WebOS is NOT affiliated with Microsoft</span>
+		</div>
+		<button class="credits">...</button>
+		<button class="ok">Ok</button>
+	`);
+	this.body.find('pre').attr('style', `
+		height:208px;
+		background-color:white;
+		padding:5px;
+		overflow-y:auto;
+		overflow-x:hidden;
+		white-space:pre-wrap;
+		font-family:consolas;
+		user-select:text;
+		cursor:text;
+	`);
+	$.get('./version.txt', function(version) {
+		win.body.find('#version').text(version);
+		var vp = version.split('.');
+		win.body.find('#lv').text(Number(vp[0]+'.'+vp[1]).toString());
+	});
 	this.body.find('button.ok')
 	.css({'width':'80px','height':'20px','position':'absolute','bottom':'10px','right':'10px'})
 	.click({win: this}, function(e) {
 		e.data.win.close();
 	});
+	var index = 0;
+	var xhr = null;
 	this.body.find('button.credits')
-	.css({'width':'80px','height':'20px','position':'absolute','bottom':'10px','left':'10px'})
+	.css({'padding-left':'10px','padding-right':'10px','width':'auto','height':'20px','position':'absolute','bottom':'10px','left':'10px'})
 	.click({win: this}, function(e) {
-		new explorer.window()
-		.closeWith(e.data.win)
-		.controls([])
-		.title('Credits')
-		.resize(450, 400)
-		.center()
-		.icon('webdows/resources/icons/info.ico')
-		.callback(function() {
-			this.body
-			.html('<pre style="user-select:text;margin:0px;top:0px;left:0px;border:0px;position:absolute;width:100%;height:100%;word-wrap:break-word;white-space:pre-wrap;"></pre>')
-			.find('pre')
-			.load('credits.txt');
+		var button = $(this);
+		var list = [
+			{
+				title:'FloydCraft WebOS License',
+				location: './license.txt'
+			}, {
+				title:'License Terms',
+				location: './legalcode.txt'
+			}, {
+				title:'Credits',
+				location: './credits_min.txt'
+			}, {
+				title:'Other Licenses',
+				location: './otherlicenses.txt'
+			}
+		];
+		if(xhr !== null) {
+			xhr.abort();
+		}
+		if(index == list.length - 1) {
+			index = 0;
+		} else {
+			index++;
+		}
+		win.body.find('#showing, pre, button.credits').text('...');
+		xhr = $.ajax({
+			url: list[index].location,
+			global: false,
+			success: function(version) {
+				win.body.find('#showing').text(list[index].title);
+				win.body.find('pre').text(version);
+				button.text(list[index].title);
+			}
 		});
 	});
+	win.body.find('button.credits').click();
 	this.body.find('div')
-	.css({'padding-left':'20px','padding-right':'20px','padding-top':'10px'});
+	.css({'padding-left':'10px','padding-right':'10px'});
 	this.body.find('center h1')
 	.css({'font-size':'40px','margin':'5px'});
 });

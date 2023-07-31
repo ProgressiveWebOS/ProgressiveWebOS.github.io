@@ -1,21 +1,22 @@
 /*!
-Project: Webdows
+Project: FloydCraft WebOS
 Liscense: MIT
-Author: krisdb2009
-File: webdows/cmd.js
+Author: rmellis | tallulah95
+Origional Script: krisdb2009
+Date: 10/11/20
 */
 new explorer.window()
 .title('Command Prompt')
-.resize(500, 300)
+.resize(540, 315)
 .icon('webdows/resources/icons/scre.ico')
 .center()
 .callback(function() {
 	var win = this;
 	var body = this.body;
 	body.css({'background-color':'#000','color':'white'});
-	body.html('<div>Below Average Webdows [Version 0.0.00001]<br>(c) 2015 Below Average. All Rights Reserved.<br><br></div><span>$></span><input>');
+	body.html('<div>FloydCraft WebOS [Version 7.1.00242]<br>(c) 2020 FloydCraft. All Rights Reserved.<br><br></div><span>$></span><input>');
 	body.find('span').attr('style', 'height:20px;width:20px;');
-	body.find('input').css({'cursor':'default','font-family':'NotoSans','font-size':'16px','height':'20px','width':'calc(100% - 20px)','border':'none','box-shadow':'none','background-color':'black','color':'white'});
+	body.find('input').css({'cursor':'default','font-family':'NotoSans','font-size':'16px','height':'20px','width':'calc(100% - 20px)','border':'none','box-shadow':'none','background-color':'black','color':'white'}).focus();
 	var history = [];
 	function push(html) {
 		body.children('div').append(html);
@@ -35,7 +36,7 @@ new explorer.window()
 		}
 		if(event.which == 13) {
 			event.preventDefault();
-			var command = dis.val();
+			var command = $('<span>').html(dis.val()).text();
 			history.push(command);
 			push('<div>$>'+command+'</div>');
 			if(command == 'cls') {

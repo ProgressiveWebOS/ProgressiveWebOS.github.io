@@ -1,9 +1,9 @@
 /*!
-Project: Webdows
+Project: FloydCraft WebOS
 Liscense: MIT
-Author: krisdb2009
-Date: 03/14/16
-File: webdows/system.js
+Author: rmellis | tallulah95
+Origional Script: krisdb2009
+Date: 12/11/20
 */
 new explorer.window()
 .title('System')

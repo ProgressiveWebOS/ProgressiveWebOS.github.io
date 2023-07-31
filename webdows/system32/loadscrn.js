@@ -19,7 +19,7 @@ $('#bootlog').append(`
 		height:160px;
 		background-image:url('webdows/resources/icons/bvlg.svg');
 		background-size:100% 100%;
-		background-color:white;
+		background-color:black;
 		border-radius:80px;
 	}
 	#`+id+` #progress {
@@ -81,4 +81,4 @@ var timer = setInterval(function() {
 		clearInterval(timer);
 		cleanup();
 	}
-}, 10);
+}, 100);

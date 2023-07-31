@@ -1,11 +1,12 @@
 /*!
-Project: Webdows
+Project: FloydCraft WebOS
 Liscense: MIT
-Author: krisdb2009
-File: webdows/explorer.js
+Author: rmellis | tallulah95
+Origional Script: krisdb2009
+Date: 10/11/20
 */
 var explorer = {
-	theme : function(themeName, extraCSS) {
+	windows : {}, theme : function(themeName, extraCSS) {
 		if(typeof themeName == 'undefined') {
 			var themeName = system.registry.get('HKEY_LOCAL_WEBDOWS/explorer/theme/default');
 		}
@@ -17,71 +18,223 @@ var explorer = {
 		$('head style').html(extraCSS);
 		$('#theme').attr('href','webdows/resources/explorer/'+themeName+'/index.css');
 		return themeName;
-	},
-	drag : function(target, handle, callback) {
+	}, is : {
+		fullScreen: false
+	}, toggleFullScreen : function(bool) {
+		if(typeof bool == 'boolean') {
+			this.is.fullScreen = !bool;
+		}
+		var dsktp = $('#desktop.explorer')[0];
+		if(this.is.fullScreen) {
+			if(document.exitFullscreen) {
+				document.exitFullscreen();
+			} else if(document.mozCancelFullScreen) {
+				document.mozCancelFullScreen();
+			} else if(document.webkitExitFullscreen) {
+				document.webkitExitFullscreen();
+			}
+			this.is.fullScreen = false;
+		} else {
+			if(dsktp.requestFullscreen) {
+				dsktp.requestFullscreen();
+			} else if(dsktp.mozRequestFullScreen) {
+				dsktp.mozRequestFullScreen();
+			} else if(dsktp.webkitRequestFullscreen) {
+				dsktp.webkitRequestFullscreen();
+			} else if(dsktp.msRequestFullscreen) {
+				dsktp.msRequestFullscreen();
+			}
+			this.is.fullScreen = true;
+		}
+		return this.is.fullScreen;
+	}, drag : function(target, handle, callback) {
 		var mouseDown = false;
-		var offsetX = 0;
-		var offsetY = 0;
+		var first = true;
+		var offsetX, offsetY, lastX, lastY, touchKey, touchStartE;
 		if(typeof handle == 'undefined') {
-			handl = null;
+			handle = null;
 		} else if(typeof handle == 'function') {
 			callback = handle;
-			handl = null;
-		} else {
-			handl = handle;
+			handle = null;
 		}
-		$(target).on('mousedown touchstart', handl, function(e) {
+		function registerCurrentTouch(e) {
+			$.each(e.touches, function(k) {
+				if(touchStartE.originalEvent.target == this.target) {
+					touchKey = k;
+					return false;
+				}
+			});
+		}
+		function mouseDownAction(e) {
 			if((e.which == 0 || e.which == 1)) {
 				mouseDown = true;
 				var targPos = $(target).position();
+				var clientX, clientY;
 				if(typeof e.touches == 'undefined') {
-					offsetX = e.clientX - targPos.left;
-					offsetY = e.clientY - targPos.top;
+					clientX = e.clientX;
+					clientY = e.clientY;
 				} else {
-					offsetX = e.touches[0].clientX - targPos.left;
-					offsetY = e.touches[0].clientY - targPos.top;
+					touchStartE = e;
+					registerCurrentTouch(touchStartE);
+					clientX = e.touches[touchKey].clientX;
+					clientY = e.touches[touchKey].clientY;
 				}
+				offsetX = clientX - targPos.left;
+				offsetY = clientY - targPos.top;
+				lastX = clientX;
+				lastY = clientY;
 			}
-		}).on('mouseup touchend', function(e) {
-			if(e.which == 0 || e.which == 1) {
-				mouseDown = false;
-			}
+		}
+		if(handle == null) {
+			var mouseDownEvent = $(target).on('mousedown touchstart', mouseDownAction);
+		} else {
+			var mouseDownEvent = $(target).find(handle).on('mousedown touchstart', mouseDownAction);
+		}
+		mouseDownEvent.on('touchend', function(e) {
+			mouseDown = false;
+			first = true;
 		});
-		$(target).parent().on('mousemove touchmove', function(e) {
+		$('#desktop.explorer').on('mousemove touchmove', function(e) {
 			if(mouseDown) {
 				e.preventDefault();
+				var parentOffsetX, parentOffsetY, movementX, movementY, clientX, clientY;
 				if(typeof e.touches == 'undefined') {
-					var x = e.clientX - offsetX;
-					var y = e.clientY - offsetY;
+					clientX = e.clientX;
+					clientY = e.clientY;
 				} else {
-					var x = e.touches[0].clientX - offsetX;
-					var y = e.touches[0].clientY - offsetY;
+					registerCurrentTouch(e);
+					clientX = e.touches[touchKey].clientX;
+					clientY = e.touches[touchKey].clientY;
 				}
+				parentOffsetX = clientX - offsetX;
+				parentOffsetY = clientY - offsetY;
+				movementX = clientX - lastX;
+				movementY = clientY - lastY;
+				lastX = clientX;
+				lastY = clientY;
 				if(typeof callback == 'undefined') {
-					$(target).css({'left':x,'top':y});
+					$(target).css({'left': parentOffsetX, 'top': parentOffsetY});
 				} else {
-					callback.call({'x':x,'y':y});
+					callback.call({
+						target: target,
+						handle: handle,
+						first: first,
+						event: e,
+						x: {
+							parentOffset: parentOffsetX,
+							movement: movementX
+						},
+						y: {
+							parentOffset: parentOffsetY,
+							movement: movementY
+						}
+					});
+					first = false;
 				}
 			}
+		}).on('mouseup', function(e) {
+			if(e.which == 0 || e.which == 1) {
+				mouseDown = false;
+				first = true;
+			}
 		});
-	},
-	initiate : function() {
+	}, resize : function(target, handles = ['n','e','s','w','ne','se','sw','nw']) {
+		target = $(target);
+		$.each(handles, function() {
+			var handle = $('<div class="resize '+this+'"></div>');
+			var callback = function() {};
+			var width = 0;
+			var left = 0;
+			var top = 0;
+			var height = 0;
+			var minWidth = 0;
+			var minHeight = 0;
+			function east() {
+				if(this.first) {
+					width = Number.parseInt(target.css('width'));
+				}
+				width += this.x.movement;
+				target.css('width', width);
+			};
+			function south() {
+				if(this.first) {
+					height = Number.parseInt(target.css('height'));
+				}
+				height += this.y.movement;
+				target.css('height', height);
+			};
+			function west() {
+				if(this.first) {
+					left = Number.parseInt(target.css('left'));
+					width = Number.parseInt(target.css('width'));
+					minWidth = Number.parseInt(target.css('min-width'));
+				}
+				width -= this.x.movement;
+				left += this.x.movement;
+				if(width > minWidth) {
+					target.css('width', width);
+					target.css('left', left);
+				} else {
+					target.css('width', minWidth);
+					target.css('left', left + width - minWidth);
+				}
+			}
+			function north() {
+				if(this.first) {
+					top = Number.parseInt(target.css('top'));
+					height = Number.parseInt(target.css('height'));
+					minHeight = Number.parseInt(target.css('min-height'));
+				}
+				height -= this.y.movement;
+				top += this.y.movement;
+				if(height > minHeight) {
+					target.css('height', height);
+					target.css('top', top);
+				} else {
+					target.css('height', minHeight);
+					target.css('top', top + height - minHeight);
+				}
+			}
+			if(this == 'n') {
+				callback = north;
+			} else if(this == 'e') {
+				callback = east;
+			} else if(this == 's') {
+				callback = south;
+			} else if(this == 'w') {
+				callback = west;
+			} else if(this == 'ne') {
+				callback = function() {
+					north.call(this);
+					east.call(this);	
+				};
+			} else if(this == 'se') {
+				callback = function() {
+					east.call(this);
+					south.call(this);	
+				};
+			} else if(this == 'sw') {
+				callback = function() {
+					south.call(this);
+					west.call(this);	
+				};
+			} else if(this == 'nw') {
+				callback = function() {
+					north.call(this);
+					west.call(this);	
+				};
+			} else {
+				return true;
+			}
+			handle.appendTo(target);
+			explorer.drag(target, handle, callback);
+		})
+	}, initiate : function() {
 		$('#desktop.explorer').remove();
 		$('head').append('<link class="explorer" href="webdows/resources/explorer/explorer.css" rel="stylesheet" type="text/css"><link class="explorer" id="theme" href="" rel="stylesheet" type="text/css"><style></style>');
 		$('body').append('<div class="explorer" id="desktop"><div id="taskbar"><span id="leftframe"><div id="start"></div></span><span id="middleframe"></span><span id="rightframe"><span id="time"></span></span></div></div>');
 		$('#desktop.explorer').attr('style', 'visibility:hidden;');
 		explorer.start.initiate();
-		$("#taskbar #middleframe").sortable({
-			revert: true,
-			axis: "x",
-			items: ".button",
-			distance: 5,
-			helper : 'clone'
-		});
-		var timeService = setInterval(function() {
-			var date = new Date();
-			$('#taskbar #time').html(system.formatAMPM(date));
-		}, 1000);
 		setTimeout(function() {
 			var theme = explorer.theme();
 		}, 100);
@@ -108,15 +261,43 @@ var explorer = {
 						}).after(rep);
 					}
 				});
+				$.each(bod.find('progress'), function() {
+					if(!$(this).hasClass('progress')) {
+						oprog = $(this);
+						nprog = $('<div class="progress"><div></div></div>');
+						oprog.after(nprog).addClass('progress');
+						function mutated() {
+							nprog.attr('style', oprog.attr('style'));
+							if(oprog.is('[value]')) {
+								nprog.addClass('value');
+								if(oprog.is('[max]')) {
+									var max = parseFloat(oprog.attr('max'));
+								} else {
+									var max = 1;
+								}
+								nprog.find('div').attr('style', 'width:'+((parseFloat(oprog.attr('value')) / max) * 100)+'%;');
+							} else {
+								nprog.removeClass('value').find('div').removeAttr('style');
+							}
+						}
+						var obsv = new MutationObserver(mutated);
+						obsv.observe(oprog[0], {
+							attributes: true
+						});
+						mutated();
+					}
+				});
 			});
+		}).on('mouseup touchend', function() {
+			$('#desktop #taskbar #middleframe .button.clone').remove();
+			$('#desktop #taskbar #middleframe .button.drag').removeClass('drag');
 		});
 		system.loader('webdows/explorer_ext.js', function() {
 			$.each(system.registry.get('HKEY_LOCAL_WEBDOWS/explorer/startup'), function() {
 				system.loader(this);
 			});
 		});
-	},
-	start : {
+	}, start : {
 		toggle : function() {
 			var start = $('#desktop #startmenu');
 			if(start.hasClass('minimized')) {
@@ -162,6 +343,12 @@ var explorer = {
 			});
 			$('#taskbar #start').click(function() {
 				explorer.start.toggle();
+			});
+			$.each(system.registry.get('HKEY_LOCAL_WEBDOWS/explorer/startmenu'), function() {
+				var data = this;
+				explorer.start.addLButton(data.title, data.icon, function() {
+					system.loader(data.file);
+				});
 			});
 			explorer.start.toggle();
 		},
@@ -251,17 +438,72 @@ var explorer = {
 				}
 			}
 		}
-	},
-	window : function(winObj) {
+	}, window : function(winObj) {
 		/** init **/
 		this.id = system.guid();
-		if(typeof winObj == 'undefined') {
-			$('#desktop').append('<div class="window" windowID="'+this.id+'"><span class="ttl"><span class="icon"></span><span class="title"></span></span><span class="minmaxclose"><span class="close"></span></span><div class="body"></div></div>');
-			$('#taskbar #middleframe').append('<span class="button" windowID="'+this.id+'"><span class="icon"></span><span class="title"><span></span></span>');
-			this.jq = $('.window[windowID='+this.id+']');
-		} else {
-			this.jq = $(winObj);
-		}
+		explorer.windows[this.id] = this;
+		this.is = {
+			closed: false,
+			minimized: false,
+			maximized: false
+		};
+		this.properties = {
+			title: '',
+			icon: ''
+		};
+		this.on = {
+			close : function() {},
+			toggleMin : function() {},
+			toggleMax : function() {}
+		};
+		$('#desktop').append('<div class="window" windowID="'+this.id+'"><span class="ttl"><span class="icon"></span><span class="title"></span></span><span class="minmaxclose"><span class="close"></span></span><div class="body"></div></div>');
+		var dragClone = null;
+		var initStep = null;
+		var tbButton = $(`
+			<span class="button" windowID="`+this.id+`">
+			<span class="icon"></span>
+			<span class="title">
+				<span></span>
+			</span>
+		`)
+		.appendTo('#taskbar #middleframe')
+		.on('mousedown touchstart', function(e) {
+			initStep = null;
+			dragClone = $(this)
+			.addClass('drag')
+			.clone()
+			.addClass('clone')
+			.css({
+				left: $(this)[0].offsetLeft,
+				width: $(this).width()
+			})
+			.appendTo($(this).parent());
+		});
+		explorer.drag(tbButton, function() {
+			dragClone.css('left', this.x.parentOffset);
+			var step = Math.round(this.x.parentOffset / tbButton.outerWidth(true));
+			if(initStep == null) {
+				initStep = step;
+			}
+			if(initStep !== step && (step >= 0 && step <= tbButton.parent().find('.button').not('.clone, .drag').length)) {
+				while(initStep !== step) {
+					if(initStep < step) {
+						var sib = tbButton.next('.button').not('.clone, .drag');
+						if(sib.length !== 0) {
+							sib.after(tbButton.detach());
+						}
+						initStep += 1;
+					} else {
+						var sib = tbButton.prev('.button').not('.clone, .drag');
+						if(sib.length !== 0) {
+							sib.before(tbButton.detach());
+						}
+						initStep -= 1;
+					}
+				}
+			}
+		});
+		this.jq = $('.window[windowID='+this.id+']');
 		var win = this;
 		/** endINIT **/
 		this.body = this.jq.find('.body');
@@ -309,11 +551,12 @@ var explorer = {
 			return this;
 		};
 		this.menuBar = function(buttArr) {
+			this.jq.children('.menuBar').remove();
 			var con = null;
 			var clicked = false;
 			var men = $('<div class="menuBar"></div>').insertBefore(this.jq.find('.body'));
 			this.jq.addClass('menuBar');
-			$('body').on('mousedown', function(e) {
+			$('body').on('mousedown contextclose', function(e) {
 				if(!$(e.target).parents('#desktop .context').length && !$(e.target).is('#desktop .context')) {
 					$(men).find('span').removeClass('clicked');
 					clicked = false;
@@ -356,14 +599,19 @@ var explorer = {
 			$('.window:not(.close)').each(function() {
 				if($(this).css('z-index') > topZ && !$(this).hasClass('minimized')) {
 					topZ = $(this).css('z-index');
-					topID = this;
+					topID = $(this).attr('windowID');
 				}
 			});
-			explorer.window(topID).front();
-			var jq = this.jq;
-			setTimeout(function() { //Wait for CSS animation.
-				jq.remove();
+			if(typeof explorer.windows[topID] == 'object') {
+				explorer.windows[topID].front();
+			}
+			var win = this;
+			setTimeout(function() {
+				win.jq.remove();
+				delete explorer.windows[win.id];
 			}, 1000);
+			this.is.closed = true;
+			this.on.close.call(this);
 			return this;
 		};
 		this.controlsArr = [];
@@ -376,10 +624,10 @@ var explorer = {
 			});
 			if($.inArray('max', array) !== -1) {
 				this.jq.find('.minmaxclose').prepend('<span class="max"></span>');
-				this.jq.resizable({handles: "n, e, s, w, ne, se, sw, nw"});
-				this.jq.resizable('enable');
-				this.jq.find('.ui-resizable-handle').show();
-				this.jq.find('.ttl, .minmaxclose .max').off();
+				this.jq.children('div.resize').show();
+
+				this.jq.find('.ttl, .minmaxclose .max').off('dblclick');
+
 				$('.window[windowID='+this.jq.attr('windowID')+'] .minmaxclose .max').click({window: this}, function(e) {
 					e.data.window.toggleMax();
 				});
@@ -388,10 +636,11 @@ var explorer = {
 						e.data.window.toggleMax();
 					}
 				});
-			} else if(typeof this.jq.resizable('instance') !== 'undefined') {
-				this.jq.resizable('disable');
-				this.jq.find('.ui-resizable-handle').hide();
-				this.jq.find('.ttl').off();
+			} else {
+
+				this.jq.find('.ttl').off('dblclick');
+				
+				this.jq.children('div.resize').hide();
 			}
 			if($.inArray('min', array) !== -1) {
 				this.jq.find('.minmaxclose').prepend('<span class="min"></span>');
@@ -405,8 +654,10 @@ var explorer = {
 			if(this.jq.hasClass('active') || this.jq.hasClass('minimized')) {
 				if(this.jq.hasClass('minimized')) {
 					this.jq.removeClass('minimized');
+					this.is.minimized = false;
 				} else {
 					this.jq.addClass('minimized');
+					this.is.minimized = true;
 				}
 			}
 			this.front();
@@ -418,17 +669,21 @@ var explorer = {
 					topID = this;
 				}
 			});
-			this.front();
+			this.on.toggleMin.call(this);
 			return this;
 		};
-		this.toggleMax = function() {
-			if(this.jq.hasClass('active') || this.jq.hasClass('maximized')) {
-				if(this.jq.hasClass('maximized')) {
-					this.jq.removeClass('maximized');
-				} else {
-					this.jq.addClass('maximized');
-				}
+		this.toggleMax = function(bool) {
+			if(typeof bool == 'boolean') {
+				this.is.maximized = !bool;
 			}
+			if(this.is.maximized) {
+				this.jq.removeClass('maximized');
+				this.is.maximized = false;
+			} else {
+				this.jq.addClass('maximized');
+				this.is.maximized = true;
+			}
+			this.on.toggleMax.call(this);
 			return this;
 		};
 		this.resize = function(width, height) {
@@ -436,12 +691,14 @@ var explorer = {
 			return this;
 		};
 		this.icon = function(url) {
+			this.properties.icon = url;
 			var css = {'background-image':"url('"+url+"')"};
 			this.jq.find('.ttl .icon').css(css);
 			$('#taskbar #middleframe .button[windowID="'+this.jq.attr('windowID')+'"] .icon').css(css);
 			return this;
 		};
 		this.title = function(title) {
+			this.properties.title = title;
 			this.jq.find('.ttl .title').text(title);
 			$('#taskbar #middleframe .button[windowID='+this.jq.attr('windowID')+'] .title').text(title);
 			return this;
@@ -469,82 +726,81 @@ var explorer = {
 			}
 			return this;
 		};
-		if(typeof winObj == 'undefined') {
-			$('#taskbar #middleframe').sortable("refresh");
-			$(this.jq).mousedown({window: this}, function(e) {
-				e.data.window.front();
-			});
-			$('#desktop').on('mousedown', {id: this.id}, function(e) {
-				var id = e.data.id;
-				if(!$(e.target).parents('.window[windowID='+id+']').length && !$(e.target).is('.window[windowID='+id+']') && !$(e.target).is('#taskbar #middleframe .button[windowID='+id+']') && !$(e.target).parents('#taskbar #middleframe .button[windowID='+id+']').length) {
-					var elm = $('.window[windowID='+id+'], #taskbar #middleframe .button[windowID='+id+']');
-					if(elm.hasClass('active')) {
-						elm.removeClass('active');
-					}
+		$(this.jq).on('mousedown touchstart', {window: this}, function(e) {
+			e.data.window.front();
+		});
+		$('#desktop').on('mousedown', {id: this.id}, function(e) {
+			var id = e.data.id;
+			if(!$(e.target).parents('.window[windowID='+id+']').length && !$(e.target).is('.window[windowID='+id+']') && !$(e.target).is('#taskbar #middleframe .button[windowID='+id+']') && !$(e.target).parents('#taskbar #middleframe .button[windowID='+id+']').length) {
+				var elm = $('.window[windowID='+id+'], #taskbar #middleframe .button[windowID='+id+']');
+				if(elm.hasClass('active')) {
+					elm.removeClass('active');
 				}
-			});
-			function menu() {
-			   var menu = [
-					{
-						title: 'Restore',
-						icon: 'webdows/resources/icons/rest.png'
-					}, {
-						title: 'Minimize',
-						icon: 'webdows/resources/icons/mini.png'
-					}, {
-						title: 'Maximize',
-						icon: 'webdows/resources/icons/maxi.png'
-					}, {}, {
-						title: 'Close',
-						icon: 'webdows/resources/icons/clos.png',
-						callback: function() { win.close(); }
-					}
-				];
-				if($.inArray('max', win.controlsArr) !== -1) {
-					if(win.jq.hasClass('maximized')) {
-						menu[0].callback = function() { win.front().toggleMax(); };
-					} else {
-						menu[2].callback = function() { win.front().toggleMax(); };
-					}
-				}
-				if($.inArray('min', win.controlsArr) !== -1) {
-					if(win.jq.hasClass('minimized')) {
-						menu[0].callback = function() { win.front().toggleMin(); };
-						menu[2].callback = undefined;
-					} else {
-						menu[1].callback = function() { win.front().toggleMin(); };
-					}
-				}
-				return menu;				
 			}
-			$('.window[windowID='+this.id+'] .ttl .icon').click({window: this}, function(e) {
-				var men = new explorer.context().append(menu());
-				men.location($(this).offset().left, $(this).offset().top + $(this).height());
-			}).dblclick({window: this}, function(e) {
-				e.data.window.jq.trigger('contextclose');
-				e.data.window.close();
-			});
-			$('#taskbar #middleframe .button[windowID='+this.id+']').contextmenu({window: this}, function(e) {
-				new explorer.context()
-				.location(e.pageX, e.pageY)
-				.append(menu());
-			});
-			$('#taskbar #middleframe .button[windowID='+this.id+']').click({window: this}, function(e) {
-				e.data.window.toggleMin();
-			});
-			$('.window[windowID='+this.id+'] .minmaxclose .close').click({window: this}, function(e) {
-				e.data.window.close();
-			});
-			explorer.drag(this.jq, '.ttl');
-			this.controls(['min','max']);
-			this.resize(300, 200);
-			this.front();
+		});
+		function menu() {
+		   var menu = [
+				{
+					title: 'Restore',
+					icon: 'webdows/resources/icons/rest.png'
+				}, {
+					title: 'Minimize',
+					icon: 'webdows/resources/icons/mini.png'
+				}, {
+					title: 'Maximize',
+					icon: 'webdows/resources/icons/maxi.png'
+				}, {}, {
+					title: 'Close',
+					icon: 'webdows/resources/icons/clos.png',
+					callback: function() { win.close(); }
+				}
+			];
+			if($.inArray('max', win.controlsArr) !== -1) {
+				if(win.jq.hasClass('maximized')) {
+					menu[0].callback = function() { win.front().toggleMax(); };
+				} else {
+					menu[2].callback = function() { win.front().toggleMax(); };
+				}
+			}
+			if($.inArray('min', win.controlsArr) !== -1) {
+				if(win.jq.hasClass('minimized')) {
+					menu[0].callback = function() { win.front().toggleMin(); };
+					menu[2].callback = undefined;
+				} else {
+					menu[1].callback = function() { win.front().toggleMin(); };
+				}
+			}
+			return menu;				
 		}
+		$('.window[windowID='+this.id+'] .ttl .icon').click({window: this}, function(e) {
+			var men = new explorer.context().append(menu());
+			men.location($(this).offset().left, $(this).offset().top + $(this).height());
+		}).dblclick({window: this}, function(e) {
+			e.data.window.jq.trigger('contextclose');
+			e.data.window.close();
+		});
+		$('#taskbar #middleframe .button[windowID='+this.id+']').contextmenu({window: this}, function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			new explorer.context()
+			.location(e.pageX, e.pageY)
+			.append(menu());
+		});
+		$('#taskbar #middleframe .button[windowID='+this.id+']').click({window: this}, function(e) {
+			e.data.window.toggleMin();
+		});
+		$('.window[windowID='+this.id+'] .minmaxclose .close').click({window: this}, function(e) {
+			e.data.window.close();
+		});
+		explorer.drag(this.jq, '.ttl');
+		explorer.resize(this.jq);
+		this.controls(['min','max']);
+		this.resize(300, 200);
+		this.front();
 		return this;
-	},
-	context: function() {
+	}, context: function() {
 		/** INIT **/
-		var dis = this;
+		var con = this;
 		this.id = system.guid();
 		$('#desktop').append('<div contextID="'+this.id+'" class="context"></div>');
 		this.jq = $('#desktop div.context[contextID='+this.id+']');
@@ -554,14 +810,14 @@ var explorer = {
 		});
 		$('#desktop').on('mousedown contextclose contextmenu', {context: this}, function(e) {
 			if(!$(e.target).parents('#desktop .context').length && !$(e.target).is('#desktop .context')) {
-				e.data.context.jq.remove();
+				con.close();
 			}
 		});
 		this.hover = false;
 		this.jq.hover(function() {
-			dis.hover = true;
+			con.hover = true;
 		}, function() {
-			dis.hover = false;
+			con.hover = false;
 		});
 		/** EndINIT **/
 		/** Functions **/
@@ -604,46 +860,49 @@ var explorer = {
 					var button = jq.find('.button[callbackID='+callid+']');
 					if(typeof v.context !== 'undefined') {
 						var sub = null;
+						button.on('mouseup', function() {
+							if(sub == null) {
+								sub = new explorer.context().append(v.context); 
+								var pos = button.offset(); var bx = pos.left; var by = pos.top; var bw = button.outerWidth(); var bh = button.outerHeight(); var sw = sub.jq.outerWidth(); var sh = sub.jq.outerHeight(); var xlim = $('#desktop.explorer').width(); var ylim = $('#desktop.explorer').height();
+								x = bx + bw;
+								y = by;
+								if(xlim < bx + bw + sw) {
+									x = x - bw - sw;
+									y = y;
+								}
+								if(ylim < by + bh + sh) {
+									x = x;
+									y = y + bh - sh;
+								}
+								sub.location(x, y);
+								button.on('unhover', function() {
+									setTimeout(function() {
+										if(!button.hasClass('hovered') && sub !== null) {
+											sub.jq.remove();
+											sub = null;
+											button.unbind('unhover');
+										}
+									}, 400);
+								});
+								button.parent().on('remove', function() {
+									sub.jq.remove();
+									sub = null;
+								});
+								sub.jq.hover(function() {
+									button.trigger('mouseover');
+								});
+							}
+						});
 						var timer = null;
 						button.hover(function() {
-							if(sub == null) {
-								timer = setTimeout(function() {
-									sub = new explorer.context().append(v.context); 
-									var pos = button.offset(); var bx = pos.left; var by = pos.top; var bw = button.outerWidth(); var bh = button.outerHeight(); var sw = sub.jq.outerWidth(); var sh = sub.jq.outerHeight(); var xlim = $('#desktop.explorer').width(); var ylim = $('#desktop.explorer').height();
-									x = bx + bw;
-									y = by;
-									if(xlim < bx + bw + sw) {
-										x = x - bw - sw;
-										y = y;
-									}
-									if(ylim < by + bh + sh) {
-										x = x;
-										y = y + bh - sh;
-									}
-									sub.location(x, y);
-									button.on('unhover', function() {
-										setTimeout(function() {
-											if(!button.hasClass('hovered') && sub !== null) {
-												sub.jq.remove();
-												sub = null;
-												button.unbind('unhover');
-											}
-										}, 400);
-									});
-									button.parent().on('remove', function() {
-										sub.jq.remove();
-										sub = null;
-									});
-									sub.jq.hover(function() {
-										button.trigger('mouseover');
-									});
-								}, 400);
-							}
+							timer = setTimeout(function() {
+								button.trigger('mouseup');
+							}, 400);
 						}, function() {
 							clearTimeout(timer);
 						});
 					} else {
-						button.click(v.callback).click(function() { $('#desktop').trigger('contextclose'); });
+						button.on('mouseup', v.callback).on('mouseup', function() { $('#desktop').trigger('contextclose'); });
 					}
 					button.on('mouseover', function() {
 						var button = $(this);
@@ -700,6 +959,115 @@ var explorer = {
 		};
 		/** EndChainFunctions **/
 		return this;
+	}, tabset: function(appendTo) {
+		var ts = this;
+		function openFirst() {
+			$.each(ts.tabs, function() {
+				if(!this.is.disabled) {
+					this.open();
+				}
+				return false;
+			});
+		};
+		this.tabs = {};
+		this.jq = $(`
+			<div class="tabset">
+				<div class="tabs"></div>
+			</div>
+		`);
+		if(typeof appendTo !== 'undefined') {
+			this.jq.appendTo(appendTo);
+		}
+		this.tab = function(title) {
+			var tab = this;
+			this.id = system.guid();
+			this.body = $('<div tabID="'+this.id+'" class="tab"></div>')
+			.appendTo(ts.jq);
+			this.tab = $('<span tabID="'+this.id+'" class="tab"><span class="icon"></span><span class="title"></span></span>')
+			.appendTo(ts.jq.find('.tabs'))
+			.on('mousedown', function() {
+				tab.open();
+			});
+			this.is = {
+				open: false,
+				removed: false,
+				disabled: false
+			}; 
+			this.properties = {
+				title: '',
+				icon: ''
+			};
+			this.remove = function() {
+				this.tab.remove();
+				this.body.remove();
+				this.is.removed = true;
+				openFirst();
+				delete ts.tabs[this.id];
+			};
+			this.disable = function() {
+				if(!this.is.disabled) {
+					this.is.disabled = true;
+					this.tab.addClass('disabled');
+				}
+				if(this.is.open) {
+					openFirst();
+				}
+				return this;
+			};
+			this.enable = function() {
+				if(this.is.disabled) {
+					this.is.disabled = false;
+					this.tab.removeClass('disabled');
+				}
+				return this;
+			};
+			this.open = function() {
+				if(!this.is.removed && !this.is.disabled) {
+					$.each(ts.tabs, function() {
+						this.tab.removeClass('open');
+						this.body.removeClass('open');
+						this.is.open = false;
+					});
+					this.tab.addClass('open');
+					this.body.addClass('open');
+					this.is.open = true;
+					return this;
+				}
+			};
+			this.title = function(title) {
+				if(typeof title == 'string' && title !== '') {
+					this.tab.find('.title').text(title);
+					this.properties.title = title;
+					return this;
+				} else {
+					throw 'explorer.tabset(): tab.title(): Please specify a title';
+				}
+			}; 
+			this.icon = function(url) {
+				if(!this.tab.hasClass('hasIcon')) {
+					this.tab.addClass('hasIcon');
+				}
+				if(typeof url !== 'string' || url == '') {
+					this.tab.removeClass('hasIcon');
+					url = '';
+				}
+				this.properties.icon = url;
+				this.tab.find('.icon').attr('style', 'background-image:url(\''+url+'\');');
+				return this;
+			};
+			this.title(title);
+			if(ts.jq.find('.tabs .tab').length == 1) {
+				ts.jq.find('.tabs .tab').trigger('mousedown');
+			}
+			ts.tabs[this.id] = this;
+			return this;
+		};
+		return this;
 	}
 };
 explorer.initiate();
+window.onunload = function() {
+	$.each(explorer.windows, function() {
+		this.close();
+	});
+};
